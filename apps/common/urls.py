@@ -3,6 +3,11 @@ from django.urls import path
 from apps.common.apis import (
     CountryListCreateAPIView,
     CountryRetrieveUpdateDestroyAPIView,
+    RegionCreateAPIView,
+    RegionDeleteAPIView,
+    RegionListAPIView,
+    RegionRetriveAPIView,
+    RegionUpdateAPIView,
 )
 
 urlpatterns = [
@@ -12,4 +17,9 @@ urlpatterns = [
         CountryRetrieveUpdateDestroyAPIView.as_view(),
         name="country-detail",
     ),
+    path("regions/list/", RegionListAPIView.as_view(), name="region-list"),
+    path("region/create/", RegionCreateAPIView.as_view(), name="region-create"),
+    path("region/delete/<int:pk>", RegionDeleteAPIView.as_view(), name="region-delete"),
+    path("region/update/<int:pk>", RegionUpdateAPIView.as_view(), name="region-update"),
+    path("region/<int:pk>", RegionRetriveAPIView.as_view(), name="region-single"),
 ]
