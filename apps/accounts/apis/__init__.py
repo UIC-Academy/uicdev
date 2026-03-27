@@ -11,6 +11,7 @@ from .views import (
     EducationListApiViews,
     EducationUpdateAPiViews,
     UserProfileAPIView,
+    UserRegisterAPIView,
 )
 
 __all__ = [
@@ -27,4 +28,5 @@ __all__ = [
     "AuthorDeleteApiViews",
     "AuthorSerializer",
     "UserProfileAPIView",
+    "UserRegisterAPIView",
 ]

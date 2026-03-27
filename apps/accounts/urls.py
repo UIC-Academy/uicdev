@@ -12,9 +12,11 @@ from apps.accounts.apis import (
     EducationListApiViews,
     EducationUpdateAPiViews,
     UserProfileAPIView,
+    UserRegisterAPIView,
 )
 
 urlpatterns = [
+    path("accounts/register/", UserRegisterAPIView.as_view(), name="register"),
     path("profile/", UserProfileAPIView.as_view(), name="profile"),
     path("education/list", EducationListApiViews.as_view(), name="educations"),
     path("education/create", EducationCreateApiViews.as_view(), name="education-create"),
