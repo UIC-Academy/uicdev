@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer
 
-from apps.accounts.models import Author, Education
+from apps.accounts.models import Author, Education, User
 
 
 class EducationSerializer(ModelSerializer):
@@ -23,4 +23,11 @@ class AuthorSerializer(ModelSerializer):
             "created_at",
             "updated_at",
         ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+
+class UserProfileSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "phone", "first_name", "last_name", "avatar", "bio", "created_at", "updated_at"]
         read_only_fields = ["id", "created_at", "updated_at"]

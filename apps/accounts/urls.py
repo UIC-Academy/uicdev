@@ -11,9 +11,11 @@ from apps.accounts.apis import (
     EducationDetailApiViews,
     EducationListApiViews,
     EducationUpdateAPiViews,
+    UserProfileAPIView,
 )
 
 urlpatterns = [
+    path("profile/", UserProfileAPIView.as_view(), name="profile"),
     path("education/list", EducationListApiViews.as_view(), name="educations"),
     path("education/create", EducationCreateApiViews.as_view(), name="education-create"),
     path("education/<int:id>/", EducationDetailApiViews.as_view(), name="education-deatil"),

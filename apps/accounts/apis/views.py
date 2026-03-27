@@ -1,17 +1,22 @@
+from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
+from rest_framework.permissions import IsAuthenticated
 
 from apps.accounts.apis import AuthorSerializer, EducationSerializer
-from apps.accounts.models import Author, Education
+from apps.accounts.models import Author, Education, User
 
 
 class EducationListApiViews(ListAPIView):
     queryset = Education.objects.all().order_by("name")
     serializer_class = EducationSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [SessionAuthentication]
 
 
 class EducationCreateApiViews(CreateAPIView):
     queryset = Education.objects.all()
     serializer_class = EducationSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class EducationUpdateAPiViews(UpdateAPIView):
@@ -35,6 +40,8 @@ class EducationDeleteApiViews(DestroyAPIView):
 class AuthorListApiViews(ListAPIView):
     queryset = Author.objects.all().order_by("first_name")
     serializer_class = AuthorSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [BasicAuthentication]
 
 
 class AuthorCreateApiViews(CreateAPIView):
@@ -58,3 +65,13 @@ class AuthorDeleteApiViews(DestroyAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     lookup_field = "id"
+
+
+class UserProfileAPIView(RetrieveAPIView):
+    queryset = User.objects.filter(is_active=True, is_deleted=False).select_related("avatar")
+    serializer_class = AuthorSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [SessionAuthentication]
+
+    def get_object(self):
+        return self.request.user
