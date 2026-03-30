@@ -1,8 +1,9 @@
 from django.urls import path
 
-from apps.common.apis import (
+from apps.common.views import (
     CountryListCreateAPIView,
     CountryRetrieveUpdateDestroyAPIView,
+    FileUploadAPIView,
     RegionCreateAPIView,
     RegionDeleteAPIView,
     RegionListAPIView,
@@ -22,4 +23,5 @@ urlpatterns = [
     path("region/delete/<int:pk>", RegionDeleteAPIView.as_view(), name="region-delete"),
     path("region/update/<int:pk>", RegionUpdateAPIView.as_view(), name="region-update"),
     path("region/<int:pk>", RegionRetriveAPIView.as_view(), name="region-single"),
+    path("file-upload/", FileUploadAPIView.as_view(), name="file-upload"),
 ]

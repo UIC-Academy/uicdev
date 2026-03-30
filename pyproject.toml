@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "django>=6.0.3",
     "django-jazzmin>=3.0.4",
+    "django-redis>=6.0.0",
     "djangorestframework>=3.17.0",
     "djangorestframework-simplejwt>=5.5.1",
     "drf-spectacular>=0.29.0",
@@ -19,6 +20,7 @@ dependencies = [
 [tool.ruff]
 line-length = 120
 target-version = "py312"
+exclude = ["migrations", "__pycache__", ".venv", "alembic", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W"]

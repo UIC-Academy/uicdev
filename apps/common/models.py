@@ -12,7 +12,7 @@ class BaseModel(models.Model):
 
 
 class Media(BaseModel):
-    file_url = models.URLField(_("file URL"), max_length=500)
+    file = models.FileField(_("File URL"), max_length=500, upload_to="media/")
 
     class Meta:
         verbose_name = _("media")

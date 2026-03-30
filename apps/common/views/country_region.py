@@ -8,8 +8,8 @@ from rest_framework.generics import (
     UpdateAPIView,
 )
 
-from apps.common.apis.serializers import CountrySerializer, RegionSerializer
 from apps.common.models import Country, Region
+from apps.common.serializers.country_region import CountrySerializer, RegionSerializer
 
 
 class CountryListCreateAPIView(ListCreateAPIView):
