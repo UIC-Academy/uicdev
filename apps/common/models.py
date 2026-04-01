@@ -19,7 +19,8 @@ class Media(BaseModel):
         verbose_name_plural = _("media")
 
     def __str__(self):
-        return self.file_url
+
+        return f"{self.file.url}"
 
 
 class Country(BaseModel):

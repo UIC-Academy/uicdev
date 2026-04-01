@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+from django.utils.translation import gettext_lazy as _
 from dotenv import load_dotenv
 
 from .jazzmin_conf import JAZZMIN_SETTINGS  # noqa
@@ -47,6 +48,8 @@ EXTERNAL_APPS = [
     "jazzmin",
     "drf_spectacular",
     "rest_framework_simplejwt",
+    "rosetta",
+    "modeltranslation",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -59,6 +62,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -134,8 +138,17 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 
 USE_I18N = True
-
 USE_TZ = True
+
+LANGUAGES = [
+    ("uz", _("Uzbek")),
+    ("ru", _("Russian")),
+    ("en", _("English")),
+]
+
+LOCALE_PATHS = (BASE_DIR / "locale",)
+
+MODELTRANSLATION_DEFAULT_LANGUAGE = "en"
 
 
 # Static files (CSS, JavaScript, Images)

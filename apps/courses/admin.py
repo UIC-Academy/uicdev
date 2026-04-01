@@ -1,4 +1,5 @@
 from django.contrib import admin
+from modeltranslation.admin import TranslationAdmin
 
 from apps.courses.models import Category, Course, CourseTag, Lesson, Module, Tag
 
@@ -21,7 +22,7 @@ class LessonInline(admin.TabularInline):
 
 
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(TranslationAdmin, admin.ModelAdmin):
     list_display = ["name"]
     search_fields = ["name"]
 
