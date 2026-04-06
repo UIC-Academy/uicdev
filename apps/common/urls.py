@@ -9,6 +9,7 @@ from apps.common.views import (
     RegionListAPIView,
     RegionRetriveAPIView,
     RegionUpdateAPIView,
+    TestTaskAPIView,
 )
 
 urlpatterns = [
@@ -24,4 +25,5 @@ urlpatterns = [
     path("region/update/<int:pk>", RegionUpdateAPIView.as_view(), name="region-update"),
     path("region/<int:pk>", RegionRetriveAPIView.as_view(), name="region-single"),
     path("file-upload/", FileUploadAPIView.as_view(), name="file-upload"),
+    path("testtask/", TestTaskAPIView.as_view(), name="testtask"),
 ]

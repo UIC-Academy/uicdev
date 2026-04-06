@@ -11,11 +11,11 @@ class MediaAdmin(admin.ModelAdmin):
 
 @admin.register(Country)
 class CountryAdmin(admin.ModelAdmin):
-    list_display = ["name"]
+    list_display = ["id", "name"]
     search_fields = ["name"]
 
 
 @admin.register(Region)
 class RegionAdmin(admin.ModelAdmin):
-    list_display = ["name"]
+    list_display = ["id", "name"]
     search_fields = ["name"]

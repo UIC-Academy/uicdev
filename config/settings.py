@@ -182,3 +182,12 @@ SPECTACULAR_SETTINGS = {
 
 ONEID_USERNAME = "eshmatuser"
 ONEID_PASSWORD = "kefy348ryi4fg438i"
+
+
+# Celery Configuration Options
+CELERY_TIMEZONE = "UTC"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+
+CELERY_BROKER_URL = "redis://localhost:6379/10"
+CELERY_RESULT_BACKEND = "redis://localhost:6379/9"
