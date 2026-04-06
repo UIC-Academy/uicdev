@@ -1,6 +1,7 @@
 from .country_region import (
     CountryListCreateAPIView,
     CountryRetrieveUpdateDestroyAPIView,
+    ImportDataAPIView,
     RegionCreateAPIView,
     RegionDeleteAPIView,
     RegionListAPIView,
@@ -20,4 +21,5 @@ __all__ = [
     "RegionUpdateAPIView",
     "FileUploadAPIView",
     "TestTaskAPIView",
+    "ImportDataAPIView",
 ]

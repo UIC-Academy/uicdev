@@ -50,6 +50,7 @@ EXTERNAL_APPS = [
     "rest_framework_simplejwt",
     "rosetta",
     "modeltranslation",
+    "django_celery_beat",
 ]
 
 AUTH_USER_MODEL = "accounts.User"

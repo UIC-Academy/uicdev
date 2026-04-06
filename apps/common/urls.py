@@ -4,6 +4,7 @@ from apps.common.views import (
     CountryListCreateAPIView,
     CountryRetrieveUpdateDestroyAPIView,
     FileUploadAPIView,
+    ImportDataAPIView,
     RegionCreateAPIView,
     RegionDeleteAPIView,
     RegionListAPIView,
@@ -26,4 +27,5 @@ urlpatterns = [
     path("region/<int:pk>", RegionRetriveAPIView.as_view(), name="region-single"),
     path("file-upload/", FileUploadAPIView.as_view(), name="file-upload"),
     path("testtask/", TestTaskAPIView.as_view(), name="testtask"),
+    path("import-country-regions/", ImportDataAPIView.as_view(), name="import-country-regions"),
 ]
