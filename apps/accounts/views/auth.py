@@ -10,6 +10,8 @@ from rest_framework.response import Response
 
 from apps.accounts.models import User
 from apps.accounts.serializers import UserProfileSerializer, UserRegisterConfirmSerializer, UserRegisterSerializer
+from apps.accounts.tasks import send_sms_to_phone_task
+from apps.accounts.utils import generate_code
 
 
 class UserRegisterAPIView(GenericAPIView):
@@ -21,11 +23,19 @@ class UserRegisterAPIView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        if User.objects.filter(phone=serializer.validated_data["phone"]).exists():
-            raise ValidationError("User already exists")
+        existing_user = User.objects.filter(phone=serializer.validated_data["phone"])
+        if not existing_user.exists():
+            user = serializer.save()
 
-        user = serializer.save()
-        return Response(UserRegisterSerializer(user).data)
+        if existing_user.filter(is_active=True):
+            raise ValidationError("User already exists and is active")
+
+        user = existing_user.first()
+        code = generate_code()
+        phone = user.phone.replace("+", "")
+        send_sms_to_phone_task.delay(phone=phone, message=f"UICdev platformasiga kirish uchun kod: {code}")
+        cache.set(f"sms_code:{user.phone}", code, 60 * 2)
+        return Response({"message": "SMS sent to the phone."})
 
 
 class UserRegisterConfirmAPIView(GenericAPIView):
@@ -45,7 +55,7 @@ class UserRegisterConfirmAPIView(GenericAPIView):
             raise ValidationError("Invalid code")
         user.is_active = True
         user.save()
-        return Response(UserRegisterSerializer(user).data)
+        return Response(UserProfileSerializer(user).data)
 
 
 class UserProfileAPIView(RetrieveAPIView):

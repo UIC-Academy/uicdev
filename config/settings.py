@@ -192,3 +192,7 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 
 CELERY_BROKER_URL = "redis://localhost:6379/10"
 CELERY_RESULT_BACKEND = "redis://localhost:6379/9"
+
+
+# SMS settings
+DEVSMS_TOKEN = os.getenv("DEVSMS_TOKEN")
