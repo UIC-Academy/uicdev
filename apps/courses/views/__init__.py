@@ -6,11 +6,8 @@ from .category import (
     CategoryUpdateAPIView,
 )
 from .courses import (
-    CourseCreateAPIView,
-    CourseDeleteAPIView,
     CourseListAPIView,
     CourseRetrieveAPIView,
-    CourseUpdateAPIView,
 )
 from .tags import TagCreateAPIView, TagDeleteAPIView, TagListAPIView, TagRetrieveAPIView, TagUpdateAPIView
 
@@ -26,8 +23,5 @@ __all__ = [
     "TagRetrieveAPIView",
     "TagDeleteAPIView",
     "CourseListAPIView",
-    "CourseCreateAPIView",
-    "CourseUpdateAPIView",
     "CourseRetrieveAPIView",
-    "CourseDeleteAPIView",
 ]

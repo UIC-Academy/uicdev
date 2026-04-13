@@ -1,35 +1,43 @@
 from rest_framework.generics import (
-    CreateAPIView,
-    DestroyAPIView,
     ListAPIView,
     RetrieveAPIView,
-    UpdateAPIView,
 )
 
 from apps.courses.models import Course
 from apps.courses.serializers import CourseSerializer
 
 
-class CourseCreateAPIView(CreateAPIView):
-    queryset = Course.objects.all()
-    serializer_class = CourseSerializer
-
-
 class CourseListAPIView(ListAPIView):
-    queryset = Course.objects.all().order_by("name")
     serializer_class = CourseSerializer
+
+    def get_queryset(self):
+        queryset = (
+            Course.objects.filter(is_active=True)
+            .select_related(
+                "author",
+                "category",
+                "banner",
+            )
+            .prefetch_related(
+                "tags",
+            )
+            .order_by("name")
+        )
+        return queryset
 
 
 class CourseRetrieveAPIView(RetrieveAPIView):
-    queryset = Course.objects.all()
     serializer_class = CourseSerializer
 
-
-class CourseUpdateAPIView(UpdateAPIView):
-    queryset = Course.objects.all()
-    serializer_class = CourseSerializer
-
-
-class CourseDeleteAPIView(DestroyAPIView):
-    queryset = Course.objects.all()
-    serializer_class = CourseSerializer
+    def get_object(self):
+        return (
+            Course.objects.filter(is_active=True)
+            .select_related(
+                "author",
+                "category",
+                "tags",
+                "banner",
+                "modules__lessons",
+            )
+            .get(pk=self.kwargs["pk"])
+        )

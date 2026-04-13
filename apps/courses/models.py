@@ -52,6 +52,12 @@ class Course(BaseModel):
         related_name="courses",
         verbose_name=_("category"),
     )
+    tags = models.ManyToManyField(
+        Tag,
+        blank=True,
+        related_name="courses",
+        verbose_name=_("tags"),
+    )
     reward_stars = models.PositiveIntegerField(_("reward stars"), default=0)
     is_active = models.BooleanField(_("is active"), default=True)
     is_published = models.BooleanField(_("is published"), default=False)
@@ -62,29 +68,6 @@ class Course(BaseModel):
 
     def __str__(self):
         return self.name
-
-
-class CourseTag(BaseModel):
-    course = models.ForeignKey(
-        Course,
-        on_delete=models.CASCADE,
-        related_name="course_tags",
-        verbose_name=_("course"),
-    )
-    tag = models.ForeignKey(
-        Tag,
-        on_delete=models.CASCADE,
-        related_name="course_tags",
-        verbose_name=_("tag"),
-    )
-
-    class Meta:
-        verbose_name = _("course tag")
-        verbose_name_plural = _("course tags")
-        unique_together = ("course", "tag")
-
-    def __str__(self):
-        return f"{self.course} - {self.tag}"
 
 
 class Module(BaseModel):
