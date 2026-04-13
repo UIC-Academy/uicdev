@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.common.models import BaseModel
+from apps.courses.choices import LessonTypeChoices
 
 
 class Category(BaseModel):
@@ -120,10 +121,11 @@ class Lesson(BaseModel):
         related_name="lesson_videos",
         verbose_name=_("video"),
     )
+    online_url = models.URLField(_("Online URL (YouTube, Vimeo, etc.)"), max_length=500, blank=True)
     name = models.CharField(_("name"), max_length=255)
     description = models.TextField(_("description"), blank=True)
     current_rating = models.FloatField(_("current rating"), default=0)
-    type = models.CharField(_("type"), max_length=50)
+    type = models.CharField(_("type"), max_length=50, choices=LessonTypeChoices.choices)
     max_attempts_count = models.PositiveIntegerField(_("max attempts count"), default=0)
     attempt_interval = models.PositiveIntegerField(_("attempt interval"), default=0)
     lesson_order = models.PositiveIntegerField(_("lesson order"), default=0)
