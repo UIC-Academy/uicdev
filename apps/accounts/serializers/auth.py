@@ -9,14 +9,19 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = ["id", "phone", "password", "created_at", "updated_at"]
         read_only_fields = ["id", "created_at", "updated_at"]
+        extra_kwargs = {
+            # Register endpoint must allow existing inactive/deleted users to request SMS again.
+            "phone": {"validators": []},
+            "password": {"write_only": True},
+        }
 
-    def save(self, **kwargs):
+    def create(self, validated_data):
         user = User(
-            phone=self.validated_data["phone"],
-            password=self.validated_data["password"],
+            phone=validated_data["phone"],
             is_active=False,
             is_deleted=False,
         )
+        user.set_password(validated_data["password"])
         user.save()
         return user
 

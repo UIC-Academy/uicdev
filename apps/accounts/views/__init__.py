@@ -1,4 +1,4 @@
-from .auth import UserProfileAPIView, UserRegisterAPIView, UserRegisterConfirmAPIView
+from .auth import UserDisableAPIView, UserProfileAPIView, UserRegisterAPIView, UserRegisterConfirmAPIView
 from .author_crud import (
     AuthorCreateAPIView,
     AuthorDeleteAPIView,
@@ -18,6 +18,7 @@ __all__ = [
     "UserRegisterAPIView",
     "UserRegisterConfirmAPIView",
     "UserProfileAPIView",
+    "UserDisableAPIView",
     "AuthorCreateAPIView",
     "AuthorDeleteAPIView",
     "AuthorDetailAPIView",
