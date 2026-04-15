@@ -41,6 +41,7 @@ LOCAL_APPS = [
     "apps.interactions",
     "apps.notifications",
     "apps.common",
+    "apps.payments",
 ]
 
 EXTERNAL_APPS = [

@@ -66,6 +66,24 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
         return f"{self.first_name} {self.last_name}".strip()
 
 
+class Wallet(BaseModel):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="wallets",
+        verbose_name=_("user"),
+    )
+    balance = models.PositiveIntegerField(_("balance"), default=0)
+    is_deleted = models.BooleanField(_("is deleted"), default=False)
+
+    class Meta:
+        verbose_name = _("wallet")
+        verbose_name_plural = _("wallets")
+
+    def __str__(self):
+        return f"{self.user} - {self.balance}"
+
+
 class Education(BaseModel):
     name = models.CharField(_("name"), max_length=255)
     type = models.CharField(_("type"), max_length=100)
