@@ -20,7 +20,7 @@ class Transaction(BaseModel):
         related_name="transactions",
         verbose_name=_("course"),
     )
-    amount = models.PositiveIntegerField(_("amount"))
+    amount = models.DecimalField(_("amount"), max_digits=10, decimal_places=2)
     vendor = models.CharField(_("vendor"), max_length=20, choices=PaymentVendorEnum.choices)
     status = models.CharField(_("status"), max_length=20, choices=TransactionStatusEnum.choices)
     currency = models.CharField(_("currency"), max_length=20, choices=CurrencyEnum.choices)

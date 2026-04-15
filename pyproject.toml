@@ -25,10 +25,13 @@ dependencies = [
 [tool.ruff]
 line-length = 120
 target-version = "py312"
-exclude = ["migrations", "__pycache__", ".venv", "alembic", "tests"]
+exclude = ["migrations", "__pycache__", ".venv", "alembic", "tests", "fakepay"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["apps", "config"]
+
+[tool.uv.workspace]
+members = ["fakepay"]

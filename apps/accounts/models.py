@@ -73,7 +73,7 @@ class Wallet(BaseModel):
         related_name="wallets",
         verbose_name=_("user"),
     )
-    balance = models.PositiveIntegerField(_("balance"), default=0)
+    balance = models.DecimalField(_("balance"), max_digits=10, decimal_places=2)
     is_deleted = models.BooleanField(_("is deleted"), default=False)
 
     class Meta:

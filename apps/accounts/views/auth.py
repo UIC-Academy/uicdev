@@ -10,10 +10,12 @@ from rest_framework.generics import (
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from apps.accounts.models import User
+from apps.accounts.models import User, Wallet
 from apps.accounts.serializers import UserProfileSerializer, UserRegisterConfirmSerializer, UserRegisterSerializer
 from apps.accounts.tasks import send_sms_to_phone_task
 from apps.accounts.utils import generate_code
+from apps.notifications.models import Notification
+from apps.payments.models import Transaction
 
 
 def _generate_deleted_phone(user_id: int) -> str:
@@ -40,6 +42,7 @@ class UserRegisterAPIView(GenericAPIView):
             if user and user.is_active and not user.is_deleted:
                 raise ValidationError("User already exists and is active")
 
+            # agar user o'chirilgan bo'lsa, phone garbage qilinadi
             if user and user.is_deleted:
                 user.phone = _generate_deleted_phone(user.pk)
                 user.is_active = False
@@ -47,8 +50,10 @@ class UserRegisterAPIView(GenericAPIView):
                 user = None
 
             if user is None:
+                # bunday user yo'q: yangi user yaratiladi
                 user = serializer.save()
             else:
+                # bunday user bor, lekin active emas
                 user.set_password(password)
                 user.is_active = False
                 user.save(update_fields=["password", "is_active"])
@@ -81,8 +86,19 @@ class UserRegisterConfirmAPIView(GenericAPIView):
         if code != cached_code:
             raise ValidationError("Invalid code")
 
-        user.is_active = True
-        user.save(update_fields=["is_active"])
+        with transaction.atomic():
+            user.is_active = True
+            user.save(update_fields=["is_active"])
+
+            wallet = Wallet.objects.create(user=user)
+            Transaction.objects.create(wallet=wallet, amount=10000)
+
+            Notification.objects.create(
+                user=user,
+                title="Welcome",
+                message="You are now registered on UICdev platform. Your wallet is filled with 10000 soums as a gift!",
+            )
+
         cache.delete(f"sms_code:{phone}")
 
         return Response(UserProfileSerializer(user).data)
