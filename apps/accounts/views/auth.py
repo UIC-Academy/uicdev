@@ -132,4 +132,6 @@ class UserDisableAPIView(GenericAPIView):
             user.save(update_fields=["phone", "is_active", "is_deleted"])
 
         cache.delete(f"sms_code:{old_phone}")
+
+        # TODO: account o'chganida hamyon ham is_deleted=True bolishi kk
         return Response({"message": "Account disabled successfully."})

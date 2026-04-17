@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.common.models import BaseModel
 from apps.courses.choices import LessonTypeChoices
+from apps.payments.choices import CurrencyEnum
 
 
 class Category(BaseModel):
@@ -58,6 +59,8 @@ class Course(BaseModel):
         related_name="courses",
         verbose_name=_("tags"),
     )
+    price = models.DecimalField(_("price"), max_digits=10, decimal_places=2, default=0)
+    currency = models.CharField(_("currency"), max_length=20, choices=CurrencyEnum.choices, default=CurrencyEnum.UZS)
     reward_stars = models.PositiveIntegerField(_("reward stars"), default=0)
     is_active = models.BooleanField(_("is active"), default=True)
     is_published = models.BooleanField(_("is published"), default=False)

@@ -2,6 +2,12 @@ from django.db.models import TextChoices
 from django.utils.translation import gettext_lazy as _
 
 
+class OrderStatusEnum(TextChoices):
+    CREATED = "created", _("created")
+    SUCCESS = "success", _("success")
+    FAILED = "failed", _("failed")
+
+
 class TransactionStatusEnum(TextChoices):
     PENDING = "pending", _("pending")
     SUCCESS = "success", _("success")
