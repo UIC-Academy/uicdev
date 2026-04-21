@@ -197,3 +197,10 @@ CELERY_RESULT_BACKEND = "redis://localhost:6379/9"
 
 # SMS settings
 DEVSMS_TOKEN = os.getenv("DEVSMS_TOKEN")
+
+# FakePay / Paylov-clone merchant integration settings
+FAKEPAY_BASE_URL = os.getenv("FAKEPAY_BASE_URL", "http://localhost:8001")
+FAKEPAY_MERCHANT_ID = os.getenv("FAKEPAY_MERCHANT_ID", "571c06fb-6c61-4ef7-8567-5511abaf12b5")
+FAKEPAY_CALLBACK_AUTH_USERNAME = os.getenv("FAKEPAY_CALLBACK_AUTH_USERNAME", "uic_callback")
+FAKEPAY_CALLBACK_AUTH_PASSWORD = os.getenv("FAKEPAY_CALLBACK_AUTH_PASSWORD", "uic_callback_pass")
+FAKEPAY_DEFAULT_RETURN_URL = os.getenv("FAKEPAY_DEFAULT_RETURN_URL", "http://localhost:3000/payment-result")

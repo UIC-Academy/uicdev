@@ -29,9 +29,12 @@ class Order(BaseModel):
     class Meta:
         verbose_name = _("order")
         verbose_name_plural = _("orders")
+        constraints = [
+            models.UniqueConstraint(fields=["user", "course"], name="unique_user_course_order"),
+        ]
 
     def __str__(self):
-        return f"{self.user}: {self.amount} {self.currency} by {self.vendor} ({self.status})"
+        return f"{self.user}: {self.amount} {self.currency} ({self.status})"
 
 
 class Transaction(BaseModel):
@@ -54,4 +57,4 @@ class Transaction(BaseModel):
         verbose_name_plural = _("transactions")
 
     def __str__(self):
-        return f"{self.amount}: {self.course} by {self.wallet}"
+        return f"{self.id}: {self.amount} {self.currency} ({self.status})"

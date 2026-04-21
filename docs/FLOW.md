@@ -46,12 +46,12 @@ later...
    - [x] Add certificate upload (type/size checks, storage, delete/replace).
    - [ ] Add audit fields (`updated_at`, `updated_by`) and history if required.
 
-5. [ ] **Checkout and enrollment** (`#5`)
-   - [ ] Build checkout page with order summary.
-   - [ ] Integrate payment provider callback/webhook verification.
-   - [ ] Create enrollment on successful payment only.
-   - [ ] Prevent duplicate purchase for already enrolled users.
-   - [ ] Handle failed/cancelled/refunded payments.
+5. [x] **Checkout and enrollment** (`#5`)
+   - [x] Build checkout page with order summary. (checkout API now returns order/course summary + hosted checkout URL)
+   - [x] Integrate payment provider callback/webhook verification.
+   - [x] Create enrollment on successful payment only.
+   - [x] Prevent duplicate purchase for already enrolled users.
+   - [x] Handle failed/cancelled/refunded payments.
 
 6. [ ] **Lesson progress + rating/comment + stars reward** (`#6`)
    - [ ] Track lesson watch completion threshold.
