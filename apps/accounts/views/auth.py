@@ -1,11 +1,10 @@
 from django.core.cache import cache
 from django.db import transaction
 from django.utils.crypto import get_random_string
-from rest_framework.authentication import SessionAuthentication
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import (
     GenericAPIView,
-    RetrieveAPIView,
+    RetrieveUpdateAPIView,
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -15,7 +14,6 @@ from apps.accounts.serializers import UserProfileSerializer, UserRegisterConfirm
 from apps.accounts.tasks import send_sms_to_phone_task
 from apps.accounts.utils import generate_code
 from apps.notifications.models import Notification
-from apps.payments.models import Transaction
 
 
 def _generate_deleted_phone(user_id: int) -> str:
@@ -87,13 +85,12 @@ class UserRegisterConfirmAPIView(GenericAPIView):
             raise ValidationError("Invalid code")
 
         with transaction.atomic():
+            user = User.objects.select_for_update().get(pk=user.pk)
             user.is_active = True
             user.save(update_fields=["is_active"])
+            Wallet.objects.get_or_create(user=user, defaults={"balance": 10000})
 
-            wallet = Wallet.objects.create(user=user)
-            Transaction.objects.create(wallet=wallet, amount=10000)
-
-            Notification.objects.create(
+            Notification.objects.get_or_create(
                 user=user,
                 title="Welcome",
                 message="You are now registered on UICdev platform. Your wallet is filled with 10000 soums as a gift!",
@@ -104,11 +101,10 @@ class UserRegisterConfirmAPIView(GenericAPIView):
         return Response(UserProfileSerializer(user).data)
 
 
-class UserProfileAPIView(RetrieveAPIView):
+class UserProfileAPIView(RetrieveUpdateAPIView):
     queryset = User.objects.filter(is_active=True, is_deleted=False).select_related("avatar")
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
-    authentication_classes = [SessionAuthentication]
 
     def get_object(self):
         return self.request.user
@@ -117,7 +113,6 @@ class UserProfileAPIView(RetrieveAPIView):
 class UserDisableAPIView(GenericAPIView):
     queryset = User.objects.filter(is_active=True, is_deleted=False)
     permission_classes = [IsAuthenticated]
-    authentication_classes = [SessionAuthentication]
 
     def delete(self, request, *args, **kwargs):
         with transaction.atomic():

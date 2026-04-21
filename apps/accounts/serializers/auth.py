@@ -2,6 +2,11 @@ from django.core.validators import RegexValidator
 from rest_framework import serializers
 
 from apps.accounts.models import User
+from apps.accounts.serializers.profile import (
+    UserCertificateSerializer,
+    UserEducationSerializer,
+    UserExperienceSerializer,
+)
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -32,7 +37,35 @@ class UserRegisterConfirmSerializer(serializers.Serializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    educations = UserEducationSerializer(many=True, read_only=True)
+    experiences = UserExperienceSerializer(many=True, read_only=True)
+    certificates = UserCertificateSerializer(many=True, read_only=True)
+
     class Meta:
         model = User
-        fields = ["id", "phone", "first_name", "last_name", "avatar", "bio", "created_at", "updated_at"]
-        read_only_fields = ["id", "password", "created_at", "updated_at"]
+        fields = [
+            "id",
+            "phone",
+            "first_name",
+            "last_name",
+            "avatar",
+            "bio",
+            "age",
+            "gender",
+            "country",
+            "region",
+            "educations",
+            "experiences",
+            "certificates",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "phone",
+            "educations",
+            "experiences",
+            "certificates",
+            "created_at",
+            "updated_at",
+        ]

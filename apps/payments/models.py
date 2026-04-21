@@ -40,6 +40,9 @@ class Transaction(BaseModel):
         on_delete=models.CASCADE,
         related_name="transactions",
         verbose_name=_("order"),
+        blank=True,
+        null=True,
+        # null=True qachonki Transaction walletni toldirish uchun bolsa
     )
     amount = models.DecimalField(_("amount"), max_digits=10, decimal_places=2)
     vendor = models.CharField(_("vendor"), max_length=20, choices=PaymentVendorEnum.choices)

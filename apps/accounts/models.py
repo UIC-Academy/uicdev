@@ -67,10 +67,10 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
 
 
 class Wallet(BaseModel):
-    user = models.ForeignKey(
+    user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="wallets",
+        related_name="wallet",
         verbose_name=_("user"),
     )
     balance = models.DecimalField(_("balance"), max_digits=10, decimal_places=2)

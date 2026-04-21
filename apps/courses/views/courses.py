@@ -35,9 +35,8 @@ class CourseRetrieveAPIView(RetrieveAPIView):
             .select_related(
                 "author",
                 "category",
-                "tags",
                 "banner",
-                "modules__lessons",
             )
+            .prefetch_related("tags", "modules__lessons")
             .get(pk=self.kwargs["pk"])
         )

@@ -13,6 +13,14 @@ from .education_crud import (
     EducationListAPIView,
     EducationUpdateAPIView,
 )
+from .profile_editing import (
+    UserCertificateDetailAPIView,
+    UserCertificateListCreateAPIView,
+    UserEducationDetailAPIView,
+    UserEducationListCreateAPIView,
+    UserExperienceDetailAPIView,
+    UserExperienceListCreateAPIView,
+)
 
 __all__ = [
     "UserRegisterAPIView",
@@ -29,4 +37,10 @@ __all__ = [
     "EducationDetailAPIView",
     "EducationListAPIView",
     "EducationUpdateAPIView",
+    "UserEducationListCreateAPIView",
+    "UserEducationDetailAPIView",
+    "UserExperienceListCreateAPIView",
+    "UserExperienceDetailAPIView",
+    "UserCertificateListCreateAPIView",
+    "UserCertificateDetailAPIView",
 ]
