@@ -52,6 +52,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "bio",
             "age",
             "gender",
+            "stars_balance",
             "country",
             "region",
             "educations",

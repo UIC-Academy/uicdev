@@ -48,6 +48,7 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     is_staff = models.BooleanField(_("is staff"), default=False)
     is_active = models.BooleanField(_("is active"), default=True)
     is_deleted = models.BooleanField(_("is deleted"), default=False)
+    stars_balance = models.PositiveIntegerField(_("stars balance"), default=0)
 
     objects = UserManager()
 

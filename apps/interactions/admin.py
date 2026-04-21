@@ -3,9 +3,12 @@ from django.contrib import admin
 from apps.interactions.models import (
     Enrollment,
     LessonAnswer,
+    LessonFavorite,
+    LessonProgress,
     LessonQuestion,
     LessonRate,
     LessonResource,
+    ModuleProgress,
     UserHomeworkAttempt,
 )
 
@@ -46,6 +49,26 @@ class LessonRateAdmin(admin.ModelAdmin):
     list_filter = ["star_count"]
     search_fields = ["user__phone", "lesson__name"]
     raw_id_fields = ["user", "lesson"]
+
+
+@admin.register(LessonFavorite)
+class LessonFavoriteAdmin(admin.ModelAdmin):
+    list_display = ["lesson", "user", "created_at"]
+    search_fields = ["user__phone", "lesson__name"]
+    raw_id_fields = ["user", "lesson"]
+
+
+@admin.register(LessonProgress)
+class LessonProgressAdmin(admin.ModelAdmin):
+    list_display = ["lesson", "enrollment", "watch_percent", "is_completed", "rewarded_stars"]
+    list_filter = ["is_completed", "reward_granted"]
+    raw_id_fields = ["lesson", "enrollment"]
+
+
+@admin.register(ModuleProgress)
+class ModuleProgressAdmin(admin.ModelAdmin):
+    list_display = ["module", "enrollment", "progress_percentage", "completed_lessons", "total_lessons"]
+    raw_id_fields = ["module", "enrollment"]
 
 
 @admin.register(UserHomeworkAttempt)

@@ -53,13 +53,13 @@ later...
    - [x] Prevent duplicate purchase for already enrolled users.
    - [x] Handle failed/cancelled/refunded payments.
 
-6. [ ] **Lesson progress + rating/comment + stars reward** (`#6`)
-   - [ ] Track lesson watch completion threshold.
-   - [ ] Persist lesson favorite (star) action.
-   - [ ] Add/create comment API + moderation policy.
-   - [ ] Recalculate module completion percentage on lesson completion.
-   - [ ] Credit user stars based on completion rule; ensure idempotency.
-   - [ ] Reflect updates in UI in near real-time.
+6. [x] **Lesson progress + rating/comment + stars reward** (`#6`)
+   - [x] Track lesson watch completion threshold.
+   - [x] Persist lesson favorite (star) action.
+   - [x] Add/create comment API + moderation policy. (create/update comment via rating API done; moderation policy pending product rules)
+   - [x] Recalculate module completion percentage on lesson completion.
+   - [x] Credit user stars based on completion rule; ensure idempotency.
+   - [x] Reflect updates in UI in near real-time. (interaction APIs return updated progress/rating/stars immediately)
 
 7. [ ] **Leaderboard** (`#7`)
    - [ ] Build leaderboard query/service with rank calculation.

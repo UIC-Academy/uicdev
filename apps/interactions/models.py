@@ -131,6 +131,83 @@ class LessonRate(BaseModel):
         return f"{self.lesson} - {self.star_count} stars"
 
 
+class LessonFavorite(BaseModel):
+    lesson = models.ForeignKey(
+        "courses.Lesson",
+        on_delete=models.CASCADE,
+        related_name="favorites",
+        verbose_name=_("lesson"),
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="lesson_favorites",
+        verbose_name=_("user"),
+    )
+
+    class Meta:
+        verbose_name = _("lesson favorite")
+        verbose_name_plural = _("lesson favorites")
+        unique_together = ("lesson", "user")
+
+    def __str__(self):
+        return f"{self.user} -> {self.lesson}"
+
+
+class LessonProgress(BaseModel):
+    enrollment = models.ForeignKey(
+        Enrollment,
+        on_delete=models.CASCADE,
+        related_name="lesson_progresses",
+        verbose_name=_("enrollment"),
+    )
+    lesson = models.ForeignKey(
+        "courses.Lesson",
+        on_delete=models.CASCADE,
+        related_name="progresses",
+        verbose_name=_("lesson"),
+    )
+    watch_percent = models.PositiveSmallIntegerField(_("watch percent"), default=0)
+    is_completed = models.BooleanField(_("is completed"), default=False)
+    completed_at = models.DateTimeField(_("completed at"), null=True, blank=True)
+    reward_granted = models.BooleanField(_("reward granted"), default=False)
+    rewarded_stars = models.PositiveIntegerField(_("rewarded stars"), default=0)
+
+    class Meta:
+        verbose_name = _("lesson progress")
+        verbose_name_plural = _("lesson progresses")
+        unique_together = ("enrollment", "lesson")
+
+    def __str__(self):
+        return f"{self.enrollment} - {self.lesson} ({self.watch_percent}%)"
+
+
+class ModuleProgress(BaseModel):
+    enrollment = models.ForeignKey(
+        Enrollment,
+        on_delete=models.CASCADE,
+        related_name="module_progresses",
+        verbose_name=_("enrollment"),
+    )
+    module = models.ForeignKey(
+        "courses.Module",
+        on_delete=models.CASCADE,
+        related_name="progresses",
+        verbose_name=_("module"),
+    )
+    progress_percentage = models.DecimalField(_("progress percentage"), max_digits=5, decimal_places=2, default=0)
+    completed_lessons = models.PositiveIntegerField(_("completed lessons"), default=0)
+    total_lessons = models.PositiveIntegerField(_("total lessons"), default=0)
+
+    class Meta:
+        verbose_name = _("module progress")
+        verbose_name_plural = _("module progresses")
+        unique_together = ("enrollment", "module")
+
+    def __str__(self):
+        return f"{self.enrollment} - {self.module} ({self.progress_percentage}%)"
+
+
 class UserHomeworkAttempt(BaseModel):
     lesson = models.ForeignKey(
         "courses.Lesson",
