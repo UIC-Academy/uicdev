@@ -82,6 +82,59 @@ class RegistrationFlowTests(APITestCase):
         mocked_sms_delay.assert_called_once()
         self.assertIsNotNone(cache.get("sms_code:+998902222222"))
 
+    @override_settings(REGISTRATION_SMS_RESEND_LIMIT=2, REGISTRATION_SMS_RESEND_WINDOW_SECONDS=120)
+    @patch("apps.accounts.views.auth.send_sms_to_phone_task.delay")
+    def test_register_resend_sms_is_rate_limited(self, mocked_sms_delay):
+        phone = "+998902222223"
+
+        first_response = self.client.post(
+            self.register_url,
+            data={"phone": phone, "password": "new_password"},
+            format="json",
+        )
+        second_response = self.client.post(
+            self.register_url,
+            data={"phone": phone, "password": "new_password"},
+            format="json",
+        )
+        third_response = self.client.post(
+            self.register_url,
+            data={"phone": phone, "password": "new_password"},
+            format="json",
+        )
+
+        self.assertEqual(first_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(second_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(third_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("too many sms", str(third_response.data).lower())
+        self.assertEqual(mocked_sms_delay.call_count, 2)
+
+    def test_register_confirm_invalid_and_expired_otp_errors(self):
+        user = User.objects.create_user(
+            phone="+998902222224",
+            password="password",
+            is_active=False,
+            is_deleted=False,
+        )
+        cache.set(f"sms_code:{user.phone}", "1234", 60)
+
+        invalid_response = self.client.post(
+            self.confirm_url,
+            data={"phone": user.phone, "code": "0000"},
+            format="json",
+        )
+        self.assertEqual(invalid_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("invalid code", str(invalid_response.data).lower())
+
+        cache.delete(f"sms_code:{user.phone}")
+        expired_response = self.client.post(
+            self.confirm_url,
+            data={"phone": user.phone, "code": "1234"},
+            format="json",
+        )
+        self.assertEqual(expired_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("code expired", str(expired_response.data).lower())
+
     @patch("apps.accounts.views.auth.send_sms_to_phone_task.delay")
     def test_register_confirm_creates_wallet_bonus_and_notification_once(self, mocked_sms_delay):
         register_response = self.client.post(

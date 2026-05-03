@@ -1,4 +1,5 @@
 import base64
+import logging
 import urllib.parse
 from decimal import Decimal
 
@@ -14,6 +15,8 @@ from apps.interactions.models import Enrollment
 from apps.payments.choices import CurrencyEnum, OrderStatusEnum, PaymentVendorEnum, TransactionStatusEnum
 from apps.payments.models import Order, Transaction
 from apps.payments.serializers import CheckoutCreateSerializer, PaymentStatusUpdateSerializer
+
+logger = logging.getLogger(__name__)
 
 PAYMENT_STATUS_SUCCESS = "0"
 PAYMENT_STATUS_INVALID_AMOUNT = "5"
@@ -136,6 +139,7 @@ class PaymentCallbackAPIView(GenericAPIView):
         expected_password = settings.FAKEPAY_CALLBACK_AUTH_PASSWORD
         username, password = _decode_basic_auth_header(request)
         if username != expected_username or password != expected_password:
+            logger.warning("payment_callback_unauthorized")
             return Response({"detail": "Unauthorized callback"}, status=status.HTTP_401_UNAUTHORIZED)
 
         request_id = request.data.get("id")
@@ -145,11 +149,16 @@ class PaymentCallbackAPIView(GenericAPIView):
         order_id = account.get("order_id")
 
         if not order_id:
+            logger.warning("payment_callback_missing_order", extra={"request_id": request_id, "method": method})
             return _status_result(PAYMENT_STATUS_ORDER_NOT_FOUND, "order_not_found", request_id)
 
         try:
             order = Order.objects.select_related("course", "user").get(id=order_id)
         except Order.DoesNotExist:
+            logger.warning(
+                "payment_callback_unknown_order",
+                extra={"request_id": request_id, "method": method, "order_id": order_id},
+            )
             return _status_result(PAYMENT_STATUS_ORDER_NOT_FOUND, "order_not_found", request_id)
 
         if method == "transaction.check":
@@ -171,6 +180,16 @@ class PaymentCallbackAPIView(GenericAPIView):
         expected_currency = 860 if order.currency == CurrencyEnum.UZS else 840
 
         if incoming_amount != order.amount or incoming_currency != expected_currency:
+            logger.warning(
+                "payment_callback_invalid_amount",
+                extra={
+                    "order_id": order.id,
+                    "incoming_amount": str(incoming_amount),
+                    "expected_amount": str(order.amount),
+                    "incoming_currency": incoming_currency,
+                    "expected_currency": expected_currency,
+                },
+            )
             return _status_result(PAYMENT_STATUS_INVALID_AMOUNT, "invalid_amount_or_currency", request_id)
 
         return _status_result(PAYMENT_STATUS_SUCCESS, "OK", request_id)
@@ -206,6 +225,10 @@ class PaymentCallbackAPIView(GenericAPIView):
                 )
 
             Enrollment.objects.get_or_create(user=order.user, course=order.course)
+            logger.info(
+                "payment_performed_enrollment_created",
+                extra={"order_id": order.id, "user_id": order.user_id, "course_id": order.course_id},
+            )
 
         return _status_result(PAYMENT_STATUS_SUCCESS, "OK", request_id)
 
@@ -243,6 +266,10 @@ class PaymentOrderStatusAPIView(GenericAPIView):
                     txn.status = TransactionStatusEnum.FAILED
                     txn.save(update_fields=["status", "updated_at"])
                 Enrollment.objects.filter(user=order.user, course=order.course).delete()
+                logger.info(
+                    "payment_refunded_enrollment_removed",
+                    extra={"order_id": order.id, "user_id": order.user_id, "course_id": order.course_id},
+                )
 
             order.save(update_fields=["status", "updated_at"])
 

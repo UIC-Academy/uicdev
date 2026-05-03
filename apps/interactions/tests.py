@@ -1,5 +1,8 @@
+from datetime import timedelta
 from decimal import Decimal
 
+from django.test import override_settings
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -10,6 +13,14 @@ from apps.interactions.models import Enrollment, LessonFavorite, LessonProgress,
 from apps.payments.choices import CurrencyEnum
 
 
+@override_settings(
+    CACHES={
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "interactions-tests",
+        }
+    }
+)
 class LessonInteractionFlowTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(phone="+998908888881", password="password", is_active=True)
@@ -131,3 +142,41 @@ class LessonInteractionFlowTests(APITestCase):
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_leaderboard_returns_rank_top10_tie_breaker_and_pagination(self):
+        u1 = User.objects.create_user(phone="+998908888883", password="password", is_active=True, stars_balance=10)
+        u2 = User.objects.create_user(phone="+998908888884", password="password", is_active=True, stars_balance=10)
+        u3 = User.objects.create_user(phone="+998908888885", password="password", is_active=True, stars_balance=8)
+
+        base_time = timezone.now()
+        User.objects.filter(id=u1.id).update(updated_at=base_time)
+        User.objects.filter(id=u2.id).update(updated_at=base_time + timedelta(seconds=5))
+        User.objects.filter(id=u3.id).update(updated_at=base_time + timedelta(seconds=10))
+        User.objects.filter(id=self.user.id).update(stars_balance=7, updated_at=base_time + timedelta(seconds=15))
+        self.user.refresh_from_db()
+
+        response = self.client.get("/api/v1/interactions/leaderboard/?limit=3&offset=0")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        top = response.data["top"]
+        self.assertEqual(len(top), 3)
+        self.assertEqual([item["id"] for item in top], [u1.id, u2.id, u3.id])
+        self.assertEqual([item["rank"] for item in top], [1, 2, 3])
+        self.assertEqual(response.data["me"]["rank"], 4)
+
+    def test_leaderboard_cache_invalidates_when_stars_change(self):
+        initial = self.client.get("/api/v1/interactions/leaderboard/")
+        self.assertEqual(initial.status_code, status.HTTP_200_OK)
+        self.assertEqual(initial.data["me"]["stars_balance"], 0)
+
+        progress_response = self.client.post(
+            f"/api/v1/interactions/lessons/{self.lesson1.id}/progress/",
+            {"watch_percent": 80},
+            format="json",
+        )
+        self.assertEqual(progress_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(progress_response.data["stars_awarded_now"], 5)
+
+        refreshed = self.client.get("/api/v1/interactions/leaderboard/")
+        self.assertEqual(refreshed.status_code, status.HTTP_200_OK)
+        self.assertEqual(refreshed.data["me"]["stars_balance"], 5)

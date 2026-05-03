@@ -1,3 +1,6 @@
+import logging
+
+from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
 from django.utils.crypto import get_random_string
@@ -15,6 +18,8 @@ from apps.accounts.tasks import send_sms_to_phone_task
 from apps.accounts.utils import generate_code
 from apps.notifications.models import Notification
 
+logger = logging.getLogger(__name__)
+
 
 def _generate_deleted_phone(user_id: int) -> str:
     for _ in range(10):
@@ -22,6 +27,25 @@ def _generate_deleted_phone(user_id: int) -> str:
         if not User.objects.filter(phone=candidate).exists():
             return candidate
     raise ValidationError("Could not generate a unique deleted phone value")
+
+
+def _check_sms_resend_limit(phone: str) -> None:
+    limit = int(getattr(settings, "REGISTRATION_SMS_RESEND_LIMIT", 3))
+    window = int(getattr(settings, "REGISTRATION_SMS_RESEND_WINDOW_SECONDS", 120))
+    key = f"sms_resend_count:{phone}"
+
+    if cache.add(key, 1, timeout=window):
+        return
+
+    try:
+        count = cache.incr(key)
+    except ValueError:
+        cache.set(key, 1, timeout=window)
+        return
+
+    if count > limit:
+        logger.warning("registration_sms_rate_limited", extra={"phone": phone})
+        raise ValidationError("Too many SMS requests. Try again later.")
 
 
 class UserRegisterAPIView(GenericAPIView):
@@ -58,8 +82,10 @@ class UserRegisterAPIView(GenericAPIView):
 
         code = generate_code()
         sms_phone = user.phone.replace("+", "")
+        _check_sms_resend_limit(user.phone)
         send_sms_to_phone_task.delay(phone=sms_phone, message=f"UICdev platformasiga kirish uchun kod: {code}")
         cache.set(f"sms_code:{user.phone}", code, 60 * 2)
+        logger.info("registration_sms_sent", extra={"user_id": user.id, "phone": user.phone})
         return Response({"message": "SMS sent to the phone."})
 
 
@@ -95,6 +121,7 @@ class UserRegisterConfirmAPIView(GenericAPIView):
                 title="Welcome",
                 message="You are now registered on UICdev platform. Your wallet is filled with 10000 soums as a gift!",
             )
+            logger.info("registration_confirmed", extra={"user_id": user.id, "phone": user.phone})
 
         cache.delete(f"sms_code:{phone}")
 
