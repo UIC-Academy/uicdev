@@ -8,6 +8,7 @@ from apps.accounts.models import (
     UserCertificate,
     UserEducation,
     UserExperience,
+    Wallet,
 )
 
 
@@ -50,6 +51,13 @@ class UserAdmin(BaseUserAdmin):
     )
     ordering = ["-created_at"]
     list_per_page = 50
+
+
+@admin.register(Wallet)
+class WalletAdmin(admin.ModelAdmin):
+    list_display = ["user", "balance", "is_deleted"]
+    search_fields = ["user__phone"]
+    raw_id_fields = ["user"]
 
 
 @admin.register(Education)

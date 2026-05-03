@@ -1,7 +1,7 @@
 from django.core.validators import RegexValidator
 from rest_framework import serializers
 
-from apps.accounts.models import User
+from apps.accounts.models import User, Wallet
 from apps.accounts.serializers.profile import (
     UserCertificateSerializer,
     UserEducationSerializer,
@@ -49,18 +49,26 @@ class RegionInlineSerializer(serializers.ModelSerializer):
         fields = ["id", "name"]
 
 
+class WalletInlineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Wallet
+        fields = ["id", "balance", "is_deleted"]
+
+
 class UserProfileSerializer(serializers.ModelSerializer):
     educations = UserEducationSerializer(many=True, read_only=True)
     experiences = UserExperienceSerializer(many=True, read_only=True)
     certificates = UserCertificateSerializer(many=True, read_only=True)
     country = CountryInlineSerializer(read_only=True)
     region = RegionInlineSerializer(read_only=True)
+    wallet = WalletInlineSerializer(read_only=True)
 
     class Meta:
         model = User
         fields = [
             "id",
             "phone",
+            "wallet",
             "first_name",
             "last_name",
             "avatar",

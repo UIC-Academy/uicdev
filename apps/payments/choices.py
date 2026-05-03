@@ -15,6 +15,11 @@ class TransactionStatusEnum(TextChoices):
     CANCELED = "canceled", _("canceled")
 
 
+class TransactionTypeEnum(TextChoices):
+    TOP_UP = "top_up", _("top up")
+    PURCHASE = "purchase", _("purchase")
+
+
 class PaymentVendorEnum(TextChoices):
     CLICK = "click", _("click")
     PAYME = "payme", _("payme")

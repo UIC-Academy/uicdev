@@ -1,6 +1,6 @@
 # FINAL Report
 
-Status: all actionable tasks from `docs/FLOW.md` are now implemented or verified. Focused test suite passes: `uv run python manage.py test apps.accounts.tests apps.payments.tests apps.interactions.tests apps.courses.tests` -> 25 tests OK.
+Status: all actionable tasks from `docs/FLOW.md` are now implemented or verified. Focused test suite passes: `uv run python manage.py test apps.accounts.tests apps.payments.tests apps.interactions.tests apps.courses.tests` -> 28 tests OK.
 
 ## Action 1: Registration + Re-SMS
 
@@ -55,23 +55,26 @@ Status: all actionable tasks from `docs/FLOW.md` are now implemented or verified
 
 **API contract/errors:** course detail/list serializers expose `modules[].lessons[]`; hidden/inactive lessons are filtered out by serializer behavior and covered by course tests.
 
-## Action 5: Checkout + Enrollment
+## Action 5: Wallet Top-Up + Wallet Purchase + Enrollment
 
-**What:** Checkout API creates/reuses order and pending transaction, returns FakePay hosted checkout URL, verifies callback Basic auth, validates amount/currency, creates enrollment only on successful perform, blocks duplicates, and handles failed/canceled/refunded statuses.
+**What:** Checkout API creates a wallet top-up transaction, returns FakePay hosted checkout URL, verifies callback Basic auth, validates amount/currency, and credits wallet once. Course purchase then debits wallet, creates successful order, creates purchase transaction, and enrolls user.
 
 **Where:**
 - Routes: `apps/payments/urls.py`.
-- Checkout: `apps/payments/views.py`, `CheckoutCreateAPIView`.
-- Callback/webhook: `PaymentCallbackAPIView`.
-- Failure/cancel/refund: `PaymentOrderStatusAPIView`.
+- Wallet top-up checkout: `apps/payments/views.py`, `CheckoutCreateAPIView`.
+- Top-up callback/webhook: `PaymentCallbackAPIView`.
+- Course purchase from wallet: `CoursePurchaseAPIView`.
+- Top-up failure/cancel/refund: `PaymentTransactionStatusAPIView`.
+- Ledger link: `apps/payments/models.py`, `Transaction.wallet`, `Transaction.type` (`top_up` or `purchase`).
 
-**Why:** Enrollment must happen only after trusted payment success. `transaction.atomic`, row locks, unique enrollment, and idempotent perform handling protect double callbacks and rollback-sensitive payment side effects.
+**Why:** Central unit is wallet. External merchant payment should only fill wallet; it should not create course order or enrollment. Course order is internal business action funded by wallet balance. `transaction.atomic`, wallet row locks, transaction row locks, unique enrollment/order constraints, and idempotent callback handling protect double credit and double purchase.
 
 **API contract/errors:**
-- `POST /api/v1/payments/checkout/` -> `order_id`, course summary, amount, currency, `checkout_url`, status.
-- `POST /api/v1/payments/callback/` -> Paylov/FakePay JSON-RPC status object.
-- `POST /api/v1/payments/orders/<id>/status/` -> updated order status.
-- Errors: duplicate purchase, unauthorized callback, order not found, invalid amount/currency.
+- `POST /api/v1/payments/checkout/` with `wallet_id`, `amount` -> `transaction_id`, `wallet_id`, amount, currency, `checkout_url`, status.
+- `POST /api/v1/payments/callback/` with `account.transaction_id` -> Paylov/FakePay JSON-RPC status object; `perform` credits wallet once.
+- `POST /api/v1/payments/purchase/` with `wallet_id`, `course_id` -> order, transaction, wallet balance, enrollment status.
+- `POST /api/v1/payments/transactions/<id>/status/` -> updated top-up transaction status.
+- Errors: foreign wallet, insufficient wallet balance, duplicate purchase, unauthorized callback, transaction not found, invalid amount/currency.
 
 ## Action 6: Lesson Progress + Favorite + Rating/Comment + Stars
 

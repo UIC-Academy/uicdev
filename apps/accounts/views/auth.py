@@ -129,7 +129,7 @@ class UserRegisterConfirmAPIView(GenericAPIView):
 
 
 class UserProfileAPIView(RetrieveUpdateAPIView):
-    queryset = User.objects.filter(is_active=True, is_deleted=False).select_related("avatar")
+    queryset = User.objects.filter(is_active=True, is_deleted=False).select_related("avatar", "wallet")
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
 
