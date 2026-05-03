@@ -29,7 +29,7 @@ class UserExperienceListCreateAPIView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return UserExperience.objects.filter(user=self.request.user).order_by("-created_at")
+        return UserExperience.objects.filter(user=self.request.user).order_by("-start_date", "-end_date")
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

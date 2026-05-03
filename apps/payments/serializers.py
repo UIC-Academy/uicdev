@@ -1,16 +1,19 @@
+from decimal import Decimal
+
 from rest_framework import serializers
 
 from apps.courses.models import Course
 
 
 class CheckoutCreateSerializer(serializers.Serializer):
-    course_id = serializers.IntegerField()
+    wallet_id = serializers.IntegerField()
+    amount = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=Decimal("500.00"), max_value=10000000)
     return_url = serializers.URLField(required=False, allow_blank=True)
 
-    def validate_course_id(self, value):
-        if not Course.objects.filter(id=value, is_active=True, is_published=True).exists():
-            raise serializers.ValidationError("Course not found or unavailable")
-        return value
+
+class CoursePurchaseSerializer(serializers.Serializer):
+    wallet_id = serializers.IntegerField()
+    course_id = serializers.PrimaryKeyRelatedField(queryset=Course.objects.filter(is_active=True, is_published=True))
 
 
 class PaymentStatusUpdateSerializer(serializers.Serializer):

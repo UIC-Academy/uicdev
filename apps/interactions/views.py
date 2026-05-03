@@ -1,8 +1,10 @@
+import logging
 from decimal import ROUND_HALF_UP, Decimal
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Avg
+from django.db.models import Avg, Q
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
@@ -10,13 +12,28 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from apps.accounts.models import User
 from apps.courses.models import Lesson
 from apps.interactions.models import Enrollment, LessonFavorite, LessonProgress, LessonRate, ModuleProgress
 from apps.interactions.serializers import LessonFavoriteSerializer, LessonProgressUpdateSerializer, LessonRateSerializer
 
+logger = logging.getLogger(__name__)
+
 
 def _completion_threshold() -> int:
     return int(getattr(settings, "LESSON_COMPLETION_THRESHOLD_PERCENT", 80))
+
+
+def _leaderboard_version() -> int:
+    return int(cache.get("leaderboard:version", 1))
+
+
+def _bump_leaderboard_version() -> None:
+    cache.set("leaderboard:version", _leaderboard_version() + 1, timeout=None)
+
+
+def _leaderboard_cache_key(limit: int, offset: int) -> str:
+    return f"leaderboard:v{_leaderboard_version()}:limit:{limit}:offset:{offset}"
 
 
 def _recalculate_module_progress(enrollment: Enrollment, lesson: Lesson) -> ModuleProgress:
@@ -110,6 +127,16 @@ class LessonProgressAPIView(GenericAPIView):
                 if stars_awarded_now > 0:
                     request.user.stars_balance += stars_awarded_now
                     request.user.save(update_fields=["stars_balance", "updated_at"])
+                    _bump_leaderboard_version()
+                    logger.info(
+                        "lesson_stars_awarded",
+                        extra={
+                            "user_id": request.user.id,
+                            "lesson_id": lesson.id,
+                            "course_id": lesson.module.course_id,
+                            "stars_awarded": stars_awarded_now,
+                        },
+                    )
 
             progress.save(
                 update_fields=[
@@ -208,6 +235,77 @@ class LessonRateAPIView(GenericAPIView):
                 "current_rating": lesson.current_rating,
                 "star_count": star_count,
                 "comment": comment,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class LeaderboardAPIView(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        try:
+            limit = int(request.query_params.get("limit", 10))
+            offset = int(request.query_params.get("offset", 0))
+        except ValueError as exc:
+            raise ValidationError("limit and offset must be integers") from exc
+
+        if limit < 1 or limit > 100:
+            raise ValidationError("limit must be between 1 and 100")
+        if offset < 0:
+            raise ValidationError("offset must be >= 0")
+
+        cache_key = _leaderboard_cache_key(limit=limit, offset=offset)
+        cached_top = cache.get(cache_key)
+        if cached_top is None:
+            ranked_qs = User.objects.filter(is_active=True, is_deleted=False).order_by(
+                "-stars_balance",
+                "updated_at",
+                "id",
+            )
+            top_users = ranked_qs[offset : offset + limit]
+            cached_top = [
+                {
+                    "id": user.id,
+                    "phone": user.phone,
+                    "stars_balance": user.stars_balance,
+                }
+                for user in top_users
+            ]
+            cache.set(cache_key, cached_top, timeout=60)
+            logger.info("leaderboard_cache_refreshed", extra={"limit": limit, "offset": offset})
+
+        top_payload = []
+        for idx, item in enumerate(cached_top):
+            top_payload.append(
+                {
+                    "id": item["id"],
+                    "phone": item["phone"],
+                    "stars_balance": item["stars_balance"],
+                    "rank": offset + idx + 1,
+                }
+            )
+
+        me = request.user
+        users_ahead = User.objects.filter(is_active=True, is_deleted=False).filter(
+            Q(stars_balance__gt=me.stars_balance)
+            | Q(stars_balance=me.stars_balance, updated_at__lt=me.updated_at)
+            | Q(stars_balance=me.stars_balance, updated_at=me.updated_at, id__lt=me.id)
+        )
+        my_rank = users_ahead.count() + 1
+
+        return Response(
+            {
+                "me": {
+                    "id": me.id,
+                    "phone": me.phone,
+                    "stars_balance": me.stars_balance,
+                    "rank": my_rank,
+                },
+                "top": top_payload,
+                "limit": limit,
+                "offset": offset,
+                "tie_breaker": "stars_balance desc, updated_at asc, id asc",
             },
             status=status.HTTP_200_OK,
         )

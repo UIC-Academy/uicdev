@@ -11,5 +11,5 @@ class OrderAdmin(admin.ModelAdmin):
 
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    list_display = ("id", "order", "amount", "status", "vendor")
-    list_display_links = ("id", "order")
+    list_display = ("id", "wallet", "order", "amount", "type", "status", "vendor")
+    list_display_links = ("id", "wallet")
